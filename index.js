@@ -2,14 +2,14 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9c3fo4b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9c3fo4b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+var uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ac-uo7wroz-shard-00-00.hhdlhdj.mongodb.net:27017,ac-uo7wroz-shard-00-01.hhdlhdj.mongodb.net:27017,ac-uo7wroz-shard-00-02.hhdlhdj.mongodb.net:27017/?ssl=true&replicaSet=atlas-76jre8-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -25,29 +25,28 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const coffeesCollection = client.db('coffeeDB').collection('coffees');
+        const coffeesCollection = client.db('coffeesDB').collection('coffees');
+        const userCollection = client.db("coffeesDB").collection("users");
 
+        // coffees curd oparetion start here
         app.get('/coffees', async (req, res) => {
             // const cursor = coffeesCollection.find();
             // const result = await cursor.toArray();
-            const result = await coffeesCollection.find().toArray();
+            const result = await  coffeesCollection.find().toArray();
+            console.log(result)
             res.send(result);
         });
-
         app.get('/coffees/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await coffeesCollection.findOne(query);
             res.send(result);
         })
-
         app.post('/coffees', async (req, res) => {
             const newCoffee = req.body;
-            console.log(newCoffee);
             const result = await coffeesCollection.insertOne(newCoffee);
             res.send(result);
         })
-
         app.put('/coffees/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -56,26 +55,31 @@ async function run() {
             const updatedDoc = {
                 $set: updatedCoffee
             }
-
             // const updatedDoc = {
             //     $set: {
             //         name: updatedCoffee.name, 
             //         supplier: updatedCoffee.supplier
             //     }
             // }
-
             const result = await coffeesCollection.updateOne(filter, updatedDoc, options);
 
             res.send(result);
         })
-
-
         app.delete('/coffees/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await coffeesCollection.deleteOne(query);
             res.send(result);
         })
+        // coffees curd oparetion end here
+
+        // user CURD Oparation start here
+        app.post("/users" , async(req , res)=>{
+            const newUser = req.body;
+            const result = await userCollection.insertOne(newUser)
+            res.send(result)
+        })
+        // user CURD Oparation End here
 
 
         // Send a ping to confirm a successful connection
@@ -95,5 +99,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Coffee server is running on port ${port}`)
+    console.log( `Coffee server is running on port ${port}`)
 })
