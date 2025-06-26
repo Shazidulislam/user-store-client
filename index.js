@@ -33,7 +33,6 @@ async function run() {
             // const cursor = coffeesCollection.find();
             // const result = await cursor.toArray();
             const result = await  coffeesCollection.find().toArray();
-            console.log(result)
             res.send(result);
         });
         app.get('/coffees/:id', async (req, res) => {
@@ -82,6 +81,24 @@ async function run() {
         app.get("/users" , async(req , res)=>{
             const result = await userCollection.find().toArray()
             res.send(result)
+        })
+        app.delete("/users/:id", async(req , res)=>{
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)}
+            const result = await userCollection.deleteOne(query)
+            res.send(result)
+        } )
+        app.patch("/users" , async(req , res)=>{
+            const {email , lastSignInTime} = req.body;
+            const filter = {email:email}
+            const updatedDoc={
+                $set:{
+                    lastSignInTime,
+                }
+            }
+            const result = await userCollection.updateOne(filter , updatedDoc)
+            res.send(result)
+            console.log(updatedDoc)
         })
         // user CURD Oparation End here
 
